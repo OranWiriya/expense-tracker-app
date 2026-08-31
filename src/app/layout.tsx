@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
-import {
-  Geist,
-  Geist_Mono,
-  IBM_Plex_Sans,
-  IBM_Plex_Sans_Thai,
-} from "next/font/google";
+import { IBM_Plex_Sans, IBM_Plex_Sans_Thai } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/ui/app-sidebar";
 
 const ibmPlexSans = IBM_Plex_Sans({
   subsets: ["latin"],
@@ -36,7 +38,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         "font-sans",
       )}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <SidebarProvider>
+          <TooltipProvider>
+            <AppSidebar />
+            <SidebarInset>
+              <main>{children}</main>
+            </SidebarInset>
+          </TooltipProvider>
+        </SidebarProvider>
+      </body>
     </html>
   );
 }
