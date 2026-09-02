@@ -38,7 +38,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <SidebarProvider>
           <TooltipProvider>
             <AppSidebar />
-            <SidebarInset>
+            <SidebarInset className="m-0! mr-2!">
               <main>{children}</main>
             </SidebarInset>
           </TooltipProvider>
