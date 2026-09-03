@@ -271,7 +271,7 @@ function SidebarTrigger({
       }}
       {...props}
     >
-      <PanelLeftIcon className="size-6!" strokeWidth={"2.5px"} />
+      <PanelLeftIcon className="size-6!" />
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   );
@@ -359,7 +359,7 @@ function SidebarSeparator({
     <Separator
       data-slot="sidebar-separator"
       data-sidebar="separator"
-      className={cn("mx-2 w-auto bg-sidebar-border", className)}
+      className={cn("w-auto bg-sidebar-border", className)}
       {...props}
     />
   );
