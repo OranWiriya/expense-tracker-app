@@ -3,12 +3,8 @@ import { IBM_Plex_Sans, IBM_Plex_Sans_Thai } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/ui/app-sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/layout/AppSidebar";
 
 const ibmPlexSans = IBM_Plex_Sans({
   subsets: ["latin"],
@@ -42,7 +38,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <SidebarProvider>
           <TooltipProvider>
             <AppSidebar />
-            <SidebarInset>
+            <SidebarInset className="m-0! mr-2!">
               <main>{children}</main>
             </SidebarInset>
           </TooltipProvider>
