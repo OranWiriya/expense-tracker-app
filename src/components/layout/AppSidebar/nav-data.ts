@@ -25,9 +25,9 @@ export interface NavFooterType {
 }
 
 export interface SidebarType {
-  header: NavItemType;
-  content: NavContentType[];
-  footer: NavFooterType;
+  header: NavItemType | null;
+  content: NavContentType[] | [];
+  footer: NavFooterType | null;
 }
 
 export const navHeader = { title: "EXPENSE TRACKER", url: "/", icon: Cat };
