@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
+import { AppTopbar } from "@/components/layout/AppTopbar";
 
 const ibmPlexSans = IBM_Plex_Sans({
   subsets: ["latin"],
@@ -37,9 +38,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         <SidebarProvider>
           <TooltipProvider>
-            <AppSidebar />
-            <SidebarInset className="m-0! mr-2!">
-              <main>{children}</main>
+            <AppSidebar header={null} content={[]} footer={null} />
+            <SidebarInset className="m-0! mr-2! ">
+              <main>
+                <AppTopbar />
+                {children}
+              </main>
             </SidebarInset>
           </TooltipProvider>
         </SidebarProvider>
