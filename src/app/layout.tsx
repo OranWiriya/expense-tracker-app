@@ -40,7 +40,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <TooltipProvider>
             <AppSidebar header={null} content={[]} footer={null} />
             <SidebarInset className="m-0! mr-2! ">
-              <main>
+              <main className="h-[calc(100vh-65px)] max-xl:h-full">
                 <AppTopbar />
                 {children}
               </main>
