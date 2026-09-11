@@ -25,7 +25,7 @@ const AppTopbar = () => {
   const headerName = pageNames.find((page) => pathname === page.url)?.title;
 
   return (
-    <div className="flex flex-row justify-between items-center p-2.5 px-3 border-b">
+    <div className="sticky top-0 bg-background flex flex-row justify-between items-center p-2.5 px-3 border-b">
       <div className="flex items-center">
         {isMobile && (
           <SidebarTrigger
