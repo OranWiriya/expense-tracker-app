@@ -7,6 +7,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { AppTopbar } from "@/components/layout/AppTopbar";
 import { cookies } from "next/headers";
+import { Toaster } from "@/components/ui/toast";
 
 const ibmPlexSans = IBM_Plex_Sans({
   subsets: ["latin"],
@@ -47,6 +48,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
                 <AppTopbar />
                 {children}
               </main>
+              <Toaster />
             </SidebarInset>
           </TooltipProvider>
         </SidebarProvider>
