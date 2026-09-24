@@ -38,6 +38,7 @@ import {
 import { useTransactionStore } from "@/store";
 import { useState } from "react";
 import { toast } from "@/components/ui/toast";
+import { formatNumberWithCommas, stripCommas } from "@/lib/format-number";
 
 const renderField = ({
   type,
@@ -57,18 +58,6 @@ const renderField = ({
       render={({ field, fieldState }) => {
         switch (type) {
           case "number": {
-            const formatNumberWithCommas = (value: string) => {
-              const [intPart, decimalPart] = value.split(".");
-              const formattedInt = intPart.replace(
-                /\B(?=(\d{3})+(?!\d))/g,
-                ",",
-              );
-              return decimalPart !== undefined
-                ? `${formattedInt}.${decimalPart}`
-                : formattedInt;
-            };
-
-            const stripCommas = (value: string) => value.replace(/,/g, "");
             return (
               <>
                 <Input
