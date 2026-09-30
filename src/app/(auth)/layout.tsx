@@ -11,8 +11,6 @@ async function SessionGuard({ children }: { children: React.ReactNode }) {
   });
 
   if (!session) {
-    const cookieStore = await cookies();
-    cookieStore.delete("better-auth.session_token");
     redirect("/signin");
   }
   return <>{children}</>;

@@ -1,17 +1,35 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 import { useState } from "react";
-import LoginForm from "./LoginForm";
-import { FieldDescription } from "@/components/ui/field";
-import RegisterForm from "./RegisterForm";
-import { usePathname } from "next/navigation";
-import ForgotForm from "./ForgotForm";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Card, CardContent } from "@/components/ui/card";
+import { FieldDescription } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import ForgotForm from "./ForgotForm";
+import RegisterForm from "./RegisterForm";
+import LoginForm from "./LoginForm";
+import ResetForm from "./ResetForm";
 
-const AuthCard = ({ className, ...props }: React.ComponentProps<"div">) => {
+interface AuthCardProps extends React.ComponentProps<"div"> {
+  token?: string;
+}
+
+const switchCard = (pathname: string, token?: string) => {
+  switch (pathname) {
+    case "/forgot-password":
+      return <ForgotForm />;
+    case "/reset-password":
+      if (!token) return <p>Token not found or invalid</p>;
+      return <ResetForm token={token} />;
+    default:
+      <>no info</>;
+  }
+};
+
+const AuthCard = ({ className, ...props }: AuthCardProps) => {
+  const { token } = props;
   const [signinState, setSigninState] = useState(true);
   const pathname = usePathname();
   return (
@@ -25,7 +43,7 @@ const AuthCard = ({ className, ...props }: React.ComponentProps<"div">) => {
               <RegisterForm setSigninState={setSigninState} />
             )
           ) : (
-            <ForgotForm />
+            switchCard(pathname, token)
           )}
         </CardContent>
       </Card>
