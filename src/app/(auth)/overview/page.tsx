@@ -5,9 +5,7 @@ import {
   TotalIncomeCard,
 } from "@/features/overview/components";
 
-import Image from "next/image";
-
-export default function Home() {
+export default function OverviewPage() {
   return (
     <div className="grid grid-cols-6 gap-4 p-3 bg-primary/10 h-full">
       <BalanceCard />

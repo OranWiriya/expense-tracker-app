@@ -1,13 +1,8 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans, IBM_Plex_Sans_Thai } from "next/font/google";
-import "./globals.css";
 import { cn } from "@/lib/utils";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/layout/AppSidebar";
-import { AppTopbar } from "@/components/layout/AppTopbar";
-import { cookies } from "next/headers";
-import { Toaster } from "@/components/ui/toast";
+import { Providers } from "./provider";
+import "./globals.css";
 
 const ibmPlexSans = IBM_Plex_Sans({
   subsets: ["latin"],
@@ -26,8 +21,6 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const cookieStore = await cookies();
-  const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
   return (
     <html
       lang="en"
@@ -39,19 +32,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         "font-sans",
       )}
     >
-      <body className="min-h-full flex flex-col">
-        <SidebarProvider defaultOpen={defaultOpen}>
-          <TooltipProvider>
-            <AppSidebar header={null} content={[]} footer={null} />
-            <SidebarInset className="m-0! mr-2! ">
-              <main className="min-h-[calc(100vh-65px)] max-xl:h-full">
-                <AppTopbar />
-                {children}
-              </main>
-              <Toaster />
-            </SidebarInset>
-          </TooltipProvider>
-        </SidebarProvider>
+      <body>
+        <Providers>
+          <main>{children}</main>
+        </Providers>
       </body>
     </html>
   );
