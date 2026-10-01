@@ -22,6 +22,7 @@ export default function proxy(request: NextRequest) {
   return NextResponse.next();
 }
 
+// if you want to change the base path pls do on this matcher and change the basePath in .env
 export const config = {
-  matcher: ["/((?!api/auth|_next|favicon.ico).*)"],
+  matcher: ["/((?!api/v1/auth|_next|favicon.ico).*)"],
 };
