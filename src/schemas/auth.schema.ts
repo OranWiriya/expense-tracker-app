@@ -37,3 +37,17 @@ export const resetPasswordSchema = signupObjectSchema
   });
 
 export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
+
+export const updateProfileSchema = signupObjectSchema
+  .omit({
+    email: true,
+  })
+  .extend({
+    image: z.string().optional(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+export type UpdateProfileFormValues = z.infer<typeof updateProfileSchema>;
