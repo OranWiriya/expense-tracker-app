@@ -8,10 +8,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import useSignout from "@/hooks/useSignout";
 import Link from "next/link";
 
-const AppAvatar = (props) => {
+interface AppAvatarProps {
+  img?: string;
+  username?: string;
+}
+
+const AppAvatar = (props: AppAvatarProps) => {
   const { img, username = "" } = props;
+  const signOut = useSignout();
+
   const avatarName = username[0].toUpperCase();
   return (
     <DropdownMenu>
@@ -37,17 +45,18 @@ const AppAvatar = (props) => {
       />
       <DropdownMenuContent className="w-32 **:cursor-pointer">
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            <Link href={"/profile"}>Profile</Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Link href={"/settings"}>Settings</Link>
-          </DropdownMenuItem>
+          <Link href={"/profile"}>
+            <DropdownMenuItem>Profile</DropdownMenuItem>
+          </Link>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem variant="destructive">
-            <Link href={"/logout"}>Logout</Link>
+          <DropdownMenuItem
+            variant="destructive"
+            onClick={() => signOut.mutate()}
+            disabled={signOut.isPending}
+          >
+            {signOut.isPending ? "Signing out..." : "Sign out"}
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>

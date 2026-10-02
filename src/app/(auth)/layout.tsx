@@ -5,12 +5,13 @@ import { AppTopbar } from "@/components/layout/AppTopbar";
 import { cookies, headers } from "next/headers";
 import { auth } from "@/lib/auth";
 
-async function SessionGuard({ children }: { children: React.ReactNode }) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+interface SessionGuardProps {
+  children: React.ReactNode;
+  userSession: Awaited<ReturnType<typeof auth.api.getSession>>;
+}
 
-  if (!session) {
+async function SessionGuard({ children, userSession }: SessionGuardProps) {
+  if (!userSession) {
     redirect("/signin");
   }
   return <>{children}</>;
@@ -23,14 +24,18 @@ export default async function AuthLayout({
 }) {
   const cookieStore = await cookies();
   const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
+  const sessionData = await auth.api.getSession({
+    headers: await headers(),
+  });
+
   return (
-    <SessionGuard>
+    <SessionGuard userSession={sessionData}>
       <div className="min-h-full flex flex-col">
         <SidebarProvider defaultOpen={defaultOpen}>
           <AppSidebar header={null} content={[]} footer={null} />
           <SidebarInset className="m-0! mr-2! ">
             <main className="min-h-[calc(100vh-65px)] max-xl:h-full">
-              <AppTopbar />
+              <AppTopbar userData={sessionData?.user} />
               {children}
             </main>
           </SidebarInset>

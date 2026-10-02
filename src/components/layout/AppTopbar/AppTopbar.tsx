@@ -2,15 +2,17 @@
 
 import { usePathname } from "next/navigation";
 import AppAvatar from "./AppAvatar";
-import { Input } from "@/components/ui/input";
-import { Field } from "@/components/ui/field";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import AppDialog from "./AppDialog";
+import { type User } from "better-auth";
+
+interface AppTopbarProps {
+  userData?: User;
+}
 
 const pageNames = [
-  { title: "Overview", url: "/" },
+  { title: "Overview", url: "/overview" },
   { title: "Transactions", url: "/transactions" },
   { title: "Calendar", url: "/calendar" },
   { title: "Reports", url: "/reports" },
@@ -19,9 +21,11 @@ const pageNames = [
   { title: "Settings", url: "/settings" },
 ];
 
-const AppTopbar = () => {
+const AppTopbar = (props: AppTopbarProps) => {
+  const { userData } = props;
   const { isMobile } = useSidebar();
   const pathname = usePathname();
+
   const headerName = pageNames.find((page) => pathname === page.url)?.title;
 
   return (
@@ -46,7 +50,10 @@ const AppTopbar = () => {
         </Field> */}
         <AppDialog />
         <Separator orientation="vertical" />
-        <AppAvatar username="John Doe" />
+        <AppAvatar
+          username={userData?.name ?? ""}
+          img={userData?.image ?? ""}
+        />
       </div>
     </div>
   );

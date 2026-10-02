@@ -40,7 +40,7 @@ const LoginForm = (props: LoginFormProps) => {
         signinForm.reset();
         toast.add({
           title: "Success",
-          description: "Account added successfully",
+          description: "Account signed in successfully",
           type: "success",
           timeout: 3000,
         });

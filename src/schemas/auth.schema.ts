@@ -37,3 +37,29 @@ export const resetPasswordSchema = signupObjectSchema
   });
 
 export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
+
+export const updateProfileSchema = signupObjectSchema
+  .omit({
+    email: true,
+  })
+  .extend({
+    image: z
+      .instanceof(File)
+      .optional()
+      .refine(
+        (file) => !file || file.size <= 2 * 1024 * 1024,
+        "Image size must be less than 2MB",
+      )
+      .refine(
+        (file) =>
+          !file ||
+          ["image/jpeg", "image/png", "image/webp"].includes(file.type),
+        "Image type must be JPEG, PNG, WebP",
+      ),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+export type UpdateProfileFormValues = z.infer<typeof updateProfileSchema>;
