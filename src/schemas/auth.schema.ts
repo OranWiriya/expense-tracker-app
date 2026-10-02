@@ -43,7 +43,19 @@ export const updateProfileSchema = signupObjectSchema
     email: true,
   })
   .extend({
-    image: z.string().optional(),
+    image: z
+      .instanceof(File)
+      .optional()
+      .refine(
+        (file) => !file || file.size <= 2 * 1024 * 1024,
+        "Image size must be less than 2MB",
+      )
+      .refine(
+        (file) =>
+          !file ||
+          ["image/jpeg", "image/png", "image/webp"].includes(file.type),
+        "Image type must be JPEG, PNG, WebP",
+      ),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",

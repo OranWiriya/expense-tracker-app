@@ -1,6 +1,11 @@
 "use client";
 
-import { Controller, Resolver, useForm } from "react-hook-form";
+import {
+  Controller,
+  ControllerRenderProps,
+  Resolver,
+  useForm,
+} from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -26,15 +31,18 @@ import {
   UpdateProfileFormValues,
 } from "@/schemas/auth.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useState } from "react";
+import Image from "next/image";
 
 const defaultValues: UpdateProfileFormValues = {
   name: "",
-  image: "",
+  image: undefined,
   password: "",
   confirmPassword: "",
 };
 
 const ProfileCard = () => {
+  const [urlImage, setUrlImage] = useState<string | null>(null);
   const { data, isPending, error } = authClient.useSession();
   const updateProfile = useUpdateProfile();
   const updateForm = useForm<UpdateProfileFormValues>({
@@ -44,14 +52,35 @@ const ProfileCard = () => {
     defaultValues,
     values: {
       name: data?.user.name ?? "",
-      image: data?.user.image ?? "",
+      image: undefined,
       password: "",
       confirmPassword: "",
     },
   });
 
+  const displayImage = urlImage || data?.user.image || null;
+
+  useEffect(() => {
+    return () => {
+      if (urlImage) URL.revokeObjectURL(urlImage);
+    };
+  }, [urlImage]);
+
+  const handleImageFile = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: ControllerRenderProps<UpdateProfileFormValues>,
+  ) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (urlImage) URL.revokeObjectURL(urlImage);
+      setUrlImage(URL.createObjectURL(file));
+    }
+    field.onChange(file);
+  };
+
   const handleRestoreForm = () => {
     updateForm.reset();
+    setUrlImage(null);
   };
 
   const handleSubmit = updateForm.handleSubmit((values) => {
@@ -98,7 +127,7 @@ const ProfileCard = () => {
                       <FieldLabel htmlFor="name">name</FieldLabel>
                       <Input
                         id="name"
-                        type="name"
+                        type="text"
                         placeholder="John Doe"
                         value={field.value}
                         onChange={(e) => field.onChange(e.target.value)}
@@ -112,7 +141,21 @@ const ProfileCard = () => {
                 }}
               />
               {/* NEED TO WORK THIS FEATURE*/}
-              {/* <Controller
+              {displayImage && (
+                <Field className="flex justify-center items-center">
+                  <div className="max-w-75">
+                    <Image
+                      src={displayImage}
+                      alt="previewImage"
+                      width={300}
+                      height={300}
+                      className="object-cover"
+                      loading="eager"
+                    />
+                  </div>
+                </Field>
+              )}
+              <Controller
                 name="image"
                 control={updateForm.control}
                 render={({ field, fieldState }) => {
@@ -124,8 +167,7 @@ const ProfileCard = () => {
                         type="file"
                         accept="image/*"
                         placeholder="Choose image to upload"
-                        value={field.value}
-                        onChange={(e) => field.onChange(e.target.value)}
+                        onChange={(e) => handleImageFile(e, field)}
                         aria-invalid={fieldState.invalid}
                         className="hover:bg-accent hover:cursor-pointer"
                       />
@@ -135,7 +177,7 @@ const ProfileCard = () => {
                     </Field>
                   );
                 }}
-              /> */}
+              />
               <Controller
                 name="password"
                 control={updateForm.control}
@@ -165,7 +207,7 @@ const ProfileCard = () => {
                   return (
                     <Field data-invalid={fieldState.invalid}>
                       <FieldLabel htmlFor="confirmPassword">
-                        confirmPassword
+                        Confirm Password
                       </FieldLabel>
                       <Input
                         id="confirmPassword"
