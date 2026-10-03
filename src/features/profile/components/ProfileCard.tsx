@@ -43,6 +43,7 @@ const defaultValues: UpdateProfileFormValues = {
 
 const ProfileCard = () => {
   const [urlImage, setUrlImage] = useState<string | null>(null);
+  const [fileInputKey, setFileInputKey] = useState<number>(0);
   const { data, isPending, error } = authClient.useSession();
   const updateProfile = useUpdateProfile();
   const updateForm = useForm<UpdateProfileFormValues>({
@@ -81,10 +82,10 @@ const ProfileCard = () => {
   const handleRestoreForm = () => {
     updateForm.reset();
     setUrlImage(null);
+    setFileInputKey((fileInputKey) => fileInputKey + 1);
   };
 
   const handleSubmit = updateForm.handleSubmit((values) => {
-    console.log(values);
     updateProfile.mutate(values, {
       onSuccess: () => {
         handleRestoreForm();
@@ -163,6 +164,7 @@ const ProfileCard = () => {
                     <Field data-invalid={fieldState.invalid}>
                       <FieldLabel htmlFor="image">image</FieldLabel>
                       <Input
+                        key={fileInputKey}
                         id="image"
                         type="file"
                         accept="image/*"
