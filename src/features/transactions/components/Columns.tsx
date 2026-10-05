@@ -1,35 +1,74 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuGroup,
-} from "@/components/ui/dropdown-menu";
-import { DataTableFeatures } from "@/lib/table-features";
+import { type DataTableFeatures } from "@/lib/table-features";
+import { Transaction } from "@/schemas/transaction.schema";
 import { createColumnHelper } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+import {
+  AsteriskIcon,
+  BeefIcon,
+  DiscAlbumIcon,
+  GiftIcon,
+  ShirtIcon,
+  WalletIcon,
+} from "lucide-react";
+import TagCell from "./TagCell";
+import ActionCell from "./ActionCell";
 
-// This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
-export type Payment = {
-  id: string;
-  amount: number;
-  status: "pending" | "processing" | "success" | "failed";
-  email: string;
+type CatagoriesIcon = {
+  [key: string]: React.ReactElement;
+};
+
+const catagoriesIcon: CatagoriesIcon = {
+  food: <BeefIcon className="text-orange-500" />,
+  entertainment: <DiscAlbumIcon className="text-pink-500" />,
+  clothing: <ShirtIcon className="text-blue-500" />,
+  salary: <WalletIcon className="text-lime-500" />,
+  gift: <GiftIcon className="text-lime-500" />,
+  etc: <AsteriskIcon className="text-gray-500" />,
 };
 
 // Use `accessor` for data columns and `display` for columns without one.
-const columnHelper = createColumnHelper<DataTableFeatures, Payment>();
+const columnHelper = createColumnHelper<DataTableFeatures, Transaction>();
 
 export const columns = columnHelper.columns([
+  // columnHelper.display({
+  //   id: "select",
+  //   header: ({ table }) => (
+  //     <Checkbox
+  //       checked={table.getIsAllPageRowsSelected()}
+  //       indeterminate={
+  //         table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected()
+  //       }
+  //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+  //       aria-label="Select all"
+  //     />
+  //   ),
+  //   cell: ({ row }) => (
+  //     <Checkbox
+  //       checked={row.getIsSelected()}
+  //       onCheckedChange={(value) => row.toggleSelected(!!value)}
+  //       aria-label="Select row"
+  //     />
+  //   ),
+  //   enableSorting: false,
+  // }),
+  // columnHelper.accessor("email", {
+  //   header: ({ column }) => {
+  //     return (
+  //       <Button
+  //         variant="ghost"
+  //         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+  //       >
+  //         Email
+  //         <ArrowUpDown className="ml-2 h-4 w-4" />
+  //       </Button>
+  //     );
+  //   },
+  // }),
   columnHelper.display({
     id: "select",
+    size: 5,
     header: ({ table }) => (
       <Checkbox
         checked={table.getIsAllPageRowsSelected()}
@@ -47,65 +86,93 @@ export const columns = columnHelper.columns([
         aria-label="Select row"
       />
     ),
-    enableSorting: false,
   }),
-  columnHelper.accessor("status", {
-    header: "Status",
-  }),
-  columnHelper.accessor("email", {
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Email
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
+  columnHelper.accessor("date", {
+    header: "Date",
+    size: 12,
+    cell: ({ row }) => {
+      const rawDate = row.getValue("date") as string;
+      const date = new Date(rawDate);
+      return <div>{date.toLocaleDateString("th-TH")}</div>;
     },
   }),
   columnHelper.accessor("amount", {
-    header: () => <div className="text-right">Amount</div>,
+    header: "Amount",
+    size: 15,
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue("amount"));
-      const formatted = new Intl.NumberFormat("en-US", {
+      const formatterCurrency = new Intl.NumberFormat("th-TH", {
         style: "currency",
-        currency: "USD",
-      }).format(amount);
+        currency: "THB",
+        maximumFractionDigits: 2,
+      });
+      const formatted = formatterCurrency
+        .formatToParts(amount)
+        .map((part) => {
+          return part.type === "currency" ? `${part.value} ` : part.value;
+        })
+        .join("");
 
-      return <div className="text-right font-medium">{formatted}</div>;
+      const colorFormatted =
+        row.original.type === "expense" ? "text-pink-600" : "text-lime-600";
+
+      return <div className={colorFormatted + " font-medium"}>{formatted}</div>;
+    },
+  }),
+  columnHelper.accessor("walletId", {
+    header: "Wallet",
+    size: 15,
+    cell: ({ row }) => {
+      return <div>{row.getValue("walletId")}</div>;
+    },
+  }),
+  columnHelper.accessor("categoryId", {
+    header: "Category",
+    size: 10,
+    maxSize: 20,
+    cell: ({ row }) => {
+      const iconKeySelection = row.getValue("categoryId")
+        ? String(row.getValue("categoryId"))
+        : "etc";
+      const iconCatagorySelected =
+        catagoriesIcon[iconKeySelection as keyof CatagoriesIcon];
+
+      return (
+        <div className="flex items-end gap-2">
+          <span>{iconCatagorySelected}</span>
+          <span>{row.getValue("categoryId")}</span>
+        </div>
+      );
+    },
+  }),
+  columnHelper.accessor("tagIds", {
+    header: "Tags",
+    size: 10,
+    cell: ({ row }) => {
+      return <TagCell tagId={String(row.getValue("tagIds"))} />;
+    },
+  }),
+  columnHelper.accessor("description", {
+    header: "Description",
+    size: 30,
+    cell: ({ row }) => {
+      return (
+        <div className="gap-1 max-w-125 truncate scroll-fade-r">
+          {row.getValue("description")}
+        </div>
+      );
     },
   }),
   columnHelper.display({
     id: "actions",
+    header: "Actions",
+    size: 3,
     cell: ({ row }) => {
-      console.log(row);
-      const payment = row.original;
+      const id = row.original.transactionId;
 
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={<Button variant="ghost" className="h-8 w-8 p-0" />}
-          >
-            <span className="sr-only">Open menu</span>
-            <MoreHorizontal className="h-4 w-4" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuGroup>
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem
-                onClick={() => navigator.clipboard.writeText(payment.id)}
-              >
-                Copy payment ID
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>View customer</DropdownMenuItem>
-              <DropdownMenuItem>View payment details</DropdownMenuItem>
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
+      console.log(id);
+
+      return <ActionCell transactionId={id} />;
     },
   }),
 ]);

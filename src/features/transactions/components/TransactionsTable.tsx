@@ -1,7 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import {
   Select,
   SelectContent,
@@ -30,6 +36,7 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  SearchIcon,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -58,27 +65,49 @@ const TransactionsTable = <TData extends RowData>({
       columnFilters,
       rowSelection,
     },
+    defaultColumn: {
+      size: 20,
+      minSize: 1,
+    },
   });
+
   return (
     <>
-      <div className="flex items-center py-4">
-        <Input
-          placeholder="Filter emails..."
-          value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("email")?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm"
-        />
+      <div id="header-table" className="flex justify-between pb-4">
+        <Field className="max-w-sm">
+          <InputGroup>
+            <InputGroupAddon align="inline-start">
+              <SearchIcon />
+            </InputGroupAddon>
+            <InputGroupInput
+              placeholder="search transaction here"
+              value={
+                (table.getColumn("email")?.getFilterValue() as string) ?? ""
+              }
+              onChange={(event) =>
+                table.getColumn("email")?.setFilterValue(event.target.value)
+              }
+            />
+          </InputGroup>
+        </Field>
+        <div className="flex items-center text-sm text-muted-foreground">
+          {table.getFilteredSelectedRowModel().rows.length} of{" "}
+          {table.getFilteredRowModel().rows.length} row(s) selected.
+        </div>
       </div>
-      <div className="overflow-hidden rounded-md border">
+      <div id="content-table" className="overflow-hidden border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead
+                      key={header.id}
+                      style={{
+                        width: `${header.getSize()}%`,
+                      }}
+                    >
                       {header.isPlaceholder ? null : (
                         <table.FlexRender header={header} />
                       )}
@@ -96,7 +125,10 @@ const TransactionsTable = <TData extends RowData>({
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getAllCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      key={cell.id}
+                      style={{ width: `${cell.column.getSize()}%` }}
+                    >
                       <table.FlexRender cell={cell} />
                     </TableCell>
                   ))}
@@ -115,11 +147,7 @@ const TransactionsTable = <TData extends RowData>({
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-between px-2">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div>
+      <div id="footer-table" className="flex items-center justify-between px-2">
         <div className="flex flex-wrap justify-center items-center space-x-6 lg:space-x-8">
           <div className="flex items-center space-x-2">
             <p className="text-sm font-medium">Rows per page</p>

@@ -1,12 +1,15 @@
+"use client";
+
 import { TransactionsTable } from "@/features/transactions/components";
 import { columns } from "@/features/transactions/components/Columns";
-import { getData } from "@/features/transactions/components/mocks/transactions-data";
+import { useTransactionStore } from "@/store";
 
-export default async function TransactionsPage() {
-  const data = await getData();
+export default function TransactionsPage() {
+  const transactionsData = useTransactionStore((state) => state.transactions);
+
   return (
-    <div>
-      <TransactionsTable columns={columns} data={data} />
+    <div className="p-3">
+      <TransactionsTable columns={columns} data={transactionsData} />
     </div>
   );
 }
