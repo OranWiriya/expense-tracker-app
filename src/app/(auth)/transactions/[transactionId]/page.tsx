@@ -1,13 +1,14 @@
 "use client";
 
+import { TransactionDetail } from "@/features/transactionsDetail/components";
 import { useParams } from "next/navigation";
 
 export default function TransactionDetailPage() {
   const params = useParams();
 
   return (
-    <div>
-      TransactionDetailPage + <span>{params.transactionId}</span>
-    </div>
+    <>
+      <TransactionDetail transactionId={String(params.transactionId)} />
+    </>
   );
 }

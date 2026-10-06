@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { filterTagsById } from "@/lib/tag-utils";
 import { cn } from "@/lib/utils";
 import { useTagStore } from "@/store";
 
@@ -11,7 +12,7 @@ function TagCell({ tagId }: { tagId: string }) {
   const tagIds = tagId === "" ? [] : tagId.split(",");
   const tags = useTagStore((state) => state.tags);
 
-  const displayTags = tags.filter((tag) => tagIds.includes(tag.tagId));
+  const displayTags = filterTagsById(tags, tagIds);
 
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
     if (e.deltaY !== 0) {
