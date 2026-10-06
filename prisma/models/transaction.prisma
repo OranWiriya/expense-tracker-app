@@ -1,0 +1,36 @@
+enum TransactionType {
+    INCOME
+    EXPENSE
+}
+
+// Category User can't changed it
+enum Category {
+    FOOD
+    TRANSPORT
+    SHOPPING
+    BILLS
+    HEALTH
+    ENTERTAINMENT
+    SALARY
+    OTHER
+}
+
+model Transaction {
+    id        String          @id @default(cuid())
+    userId    String
+    user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+    walletId  String
+    wallet    Wallet          @relation(fields: [walletId], references: [id], onDelete: Restrict)
+    type      TransactionType
+    category  Category
+    amount    Decimal         @db.Decimal(12, 2)
+    note      String?
+    date      DateTime // timestamptz
+    tags      Tag[]
+    createdAt DateTime        @default(now())
+    updatedAt DateTime        @updatedAt
+
+    @@index([userId, date(sort: Desc), id(sort: Desc)])
+    @@index([userId, category])
+    @@index([userId, walletId])
+}

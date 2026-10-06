@@ -1,0 +1,10 @@
+model Wallet {
+    id          String        @id @default(cuid())
+    name        String
+    userId      String
+    user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+    transaction Transaction[]
+    createdAt   DateTime      @default(now())
+
+    @@unique([userId, name])
+}
