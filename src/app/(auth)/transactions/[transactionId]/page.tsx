@@ -1,14 +1,16 @@
-"use client";
+import { TransactionDetail } from "@/features/transactionsDetail/components/";
 
-import { TransactionDetail } from "@/features/transactionsDetail/components";
-import { useParams } from "next/navigation";
-
-export default function TransactionDetailPage() {
-  const params = useParams();
+export default async function TransactionDetailPage({
+  params,
+}: {
+  params: Promise<{ transactionId: string }>;
+}) {
+  const { transactionId } = await params;
 
   return (
-    <>
-      <TransactionDetail transactionId={String(params.transactionId)} />
-    </>
+    <TransactionDetail
+      key={transactionId}
+      transactionId={String(transactionId)}
+    />
   );
 }
