@@ -1,4 +1,4 @@
-import { Control, Controller, Resolver, useForm } from "react-hook-form";
+import { Resolver, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,26 +11,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import AppMultipleSelect from "./AppMultipleSelect";
-import AppDatePicker from "./AppDatePicker";
-import { accountItems, expenseItems, IncomeItems } from "./topbar-data";
 import {
   TransactionFormValues,
   transactionInputSchema,
@@ -38,125 +20,7 @@ import {
 import { useTransactionStore } from "@/store";
 import { useState } from "react";
 import { toast } from "@/components/ui/toast";
-import { formatNumberWithCommas, stripCommas } from "@/lib/format-number";
-
-const renderField = ({
-  type,
-  name,
-  control,
-  transactionType,
-}: {
-  type: string;
-  name: keyof TransactionFormValues;
-  control: Control<TransactionFormValues>;
-  transactionType: "expense" | "income";
-}) => {
-  return (
-    <Controller
-      name={name}
-      control={control}
-      render={({ field, fieldState }) => {
-        switch (type) {
-          case "number": {
-            return (
-              <>
-                <Input
-                  {...field}
-                  type="text"
-                  inputMode="decimal"
-                  id={field.name}
-                  value={
-                    field.value
-                      ? formatNumberWithCommas(String(field.value))
-                      : ""
-                  }
-                  onChange={(e) => {
-                    const raw = stripCommas(e.target.value);
-                    if (raw === "" || /^\d*\.?\d*$/.test(raw)) {
-                      field.onChange(raw); // เก็บใน form state แบบไม่มี comma
-                    }
-                  }}
-                  placeholder="Plese Enter amount number"
-                  aria-invalid={fieldState.invalid}
-                />
-                {fieldState.error && (
-                  <FieldError>{fieldState.error.message}</FieldError>
-                )}
-              </>
-            );
-          }
-          case "select": {
-            let itemData: { value: string; label: string }[] = [];
-            if (name === "walletId") itemData = accountItems;
-            if (name === "categoryId") {
-              itemData =
-                transactionType === "expense" ? expenseItems : IncomeItems;
-            }
-            return (
-              <>
-                <Select
-                  items={itemData}
-                  value={(field.value as string) ?? ""}
-                  onValueChange={(val) => field.onChange(val ?? "")}
-                >
-                  <SelectTrigger aria-invalid={fieldState.invalid}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent alignItemWithTrigger={false}>
-                    <SelectGroup>
-                      <SelectLabel>
-                        {name === "walletId" ? "Wallet" : "Catagory"}
-                      </SelectLabel>
-                      {itemData.map((item) => (
-                        <SelectItem key={item.value} value={item.value}>
-                          {item.label}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-                {fieldState.error && (
-                  <FieldError>{fieldState.error.message}</FieldError>
-                )}
-              </>
-            );
-          }
-          case "multi-select": {
-            return (
-              <AppMultipleSelect
-                value={field.value as string[]}
-                onChange={field.onChange}
-              />
-            );
-          }
-          case "date": {
-            return (
-              <>
-                <AppDatePicker
-                  value={field.value as string}
-                  onChange={field.onChange}
-                  aria-invalid={fieldState.invalid}
-                />
-                {fieldState.error && (
-                  <FieldError>{fieldState.error.message}</FieldError>
-                )}
-              </>
-            );
-          }
-          default: {
-            return (
-              <Input
-                type="text"
-                value={field.value as string}
-                onChange={field.onChange}
-              />
-            );
-          }
-        }
-      }}
-    />
-  );
-};
+import RenderField from "@/constants/RenderField";
 
 const expenseHeader = {
   Title: "Expense Amount",
@@ -256,12 +120,11 @@ const AppDialog = () => {
                         <span className="text-destructive">*</span>
                       )}
                     </FieldLabel>
-                    {renderField({
-                      type: field.type,
-                      name: field.name,
-                      control: transactionForm.control,
-                      transactionType: activeTab as "expense" | "income",
-                    })}
+                    <RenderField
+                      type={field.type}
+                      name={field.name}
+                      control={transactionForm.control}
+                    />
                   </Field>
                 ))}
               </FieldGroup>
@@ -284,12 +147,11 @@ const AppDialog = () => {
                         <span className="text-destructive">*</span>
                       )}
                     </FieldLabel>
-                    {renderField({
-                      type: field.type,
-                      name: field.name,
-                      control: transactionForm.control,
-                      transactionType: activeTab as "expense" | "income",
-                    })}
+                    <RenderField
+                      type={field.type}
+                      name={field.name}
+                      control={transactionForm.control}
+                    />
                   </Field>
                 ))}
               </FieldGroup>
