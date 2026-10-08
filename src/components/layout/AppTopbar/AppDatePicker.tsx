@@ -22,9 +22,13 @@ const AppDatePicker = (props: {
   const dateObj = value ? parseISO(value) : undefined;
 
   const handleChange = (selectedDate: Date) => {
-    const now = new Date();
+    const baseTime = dateObj ?? new Date();
     const merged = new Date(selectedDate);
-    merged.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+    merged.setHours(
+      baseTime.getHours(),
+      baseTime.getMinutes(),
+      baseTime.getSeconds(),
+    );
     onChange(toISOString(merged));
   };
 
