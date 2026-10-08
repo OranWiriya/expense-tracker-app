@@ -4,29 +4,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { type DataTableFeatures } from "@/lib/table-features";
 import { Transaction } from "@/schemas/transaction.schema";
 import { createColumnHelper } from "@tanstack/react-table";
-import {
-  AsteriskIcon,
-  BeefIcon,
-  DiscAlbumIcon,
-  GiftIcon,
-  ShirtIcon,
-  WalletIcon,
-} from "lucide-react";
 import TagCell from "./TagCell";
 import ActionCell from "./ActionCell";
-
-type CatagoriesIcon = {
-  [key: string]: React.ReactElement;
-};
-
-const catagoriesIcon: CatagoriesIcon = {
-  food: <BeefIcon className="text-orange-500" />,
-  entertainment: <DiscAlbumIcon className="text-pink-500" />,
-  clothing: <ShirtIcon className="text-blue-500" />,
-  salary: <WalletIcon className="text-lime-500" />,
-  gift: <GiftIcon className="text-lime-500" />,
-  etc: <AsteriskIcon className="text-gray-500" />,
-};
+import { formatNumberByCurrency } from "@/lib/format-number";
+import {
+  CATEGORIES,
+  CategoryIcon,
+  isCategory,
+} from "@/constants/CategoriesIcon";
+import { Category } from "@/generated/prisma/enums";
 
 // Use `accessor` for data columns and `display` for columns without one.
 const columnHelper = createColumnHelper<DataTableFeatures, Transaction>();
@@ -101,17 +87,7 @@ export const columns = columnHelper.columns([
     size: 15,
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue("amount"));
-      const formatterCurrency = new Intl.NumberFormat("th-TH", {
-        style: "currency",
-        currency: "THB",
-        maximumFractionDigits: 2,
-      });
-      const formatted = formatterCurrency
-        .formatToParts(amount)
-        .map((part) => {
-          return part.type === "currency" ? `${part.value} ` : part.value;
-        })
-        .join("");
+      const formatted = formatNumberByCurrency(amount);
 
       const colorFormatted =
         row.original.type === "expense" ? "text-pink-600" : "text-lime-600";
@@ -131,16 +107,14 @@ export const columns = columnHelper.columns([
     size: 10,
     maxSize: 20,
     cell: ({ row }) => {
-      const iconKeySelection = row.getValue("categoryId")
-        ? String(row.getValue("categoryId"))
-        : "etc";
-      const iconCatagorySelected =
-        catagoriesIcon[iconKeySelection as keyof CatagoriesIcon];
+      const raw = row.getValue("categoryId");
+      const category: Category = isCategory(raw) ? raw : "etc";
 
+      console.log(raw, category);
       return (
-        <div className="flex items-end gap-2">
-          <span>{iconCatagorySelected}</span>
-          <span>{row.getValue("categoryId")}</span>
+        <div className="flex items-center gap-2">
+          <span>{<CategoryIcon category={category} className="size-4" />}</span>
+          <span>{CATEGORIES[category].label.toLocaleLowerCase()}</span>
         </div>
       );
     },
@@ -157,7 +131,7 @@ export const columns = columnHelper.columns([
     size: 30,
     cell: ({ row }) => {
       return (
-        <div className="gap-1 max-w-125 truncate scroll-fade-r">
+        <div className="gap-1 max-w-125 truncate scroll-fade-r scroll-smooth">
           {row.getValue("description")}
         </div>
       );
