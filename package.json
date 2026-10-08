@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "migrate:postgres": "dotenv -e .env -- bunx prisma migrate deploy"
+    "db:migrate": "dotenv run -f .env.local -- prisma migrate dev"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

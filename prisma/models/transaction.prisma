@@ -5,14 +5,12 @@ enum TransactionType {
 
 // Category User can't changed it
 enum Category {
-    FOOD
-    TRANSPORT
-    SHOPPING
-    BILLS
-    HEALTH
-    ENTERTAINMENT
-    SALARY
-    OTHER
+    food
+    entertainment
+    clothing
+    salary
+    gift
+    etc
 }
 
 model Transaction {
