@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Control, Resolver, useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { useTagStore, useTransactionStore } from "@/store";
@@ -103,6 +103,11 @@ const TransactionDetail = (props: TransactionDetailProps) => {
     defaultValues,
     values: transactionDetail,
   });
+
+  useEffect(() => {
+    if (!transactionDetail) router.replace("/transactions");
+  }, [router, transactionDetail]);
+
   const { isDirty } = transactionForm.formState;
   const catagoryData = isCategory(transactionDetail?.categoryId)
     ? transactionDetail.categoryId
@@ -133,7 +138,6 @@ const TransactionDetail = (props: TransactionDetailProps) => {
   );
 
   if (!transactionDetail) {
-    router.push("/transactions");
     return null;
   }
 
