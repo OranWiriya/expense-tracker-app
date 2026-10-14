@@ -4,6 +4,7 @@ import { getUserId } from "@/lib/session";
 import { transferInputSchema } from "@/schemas/tranfer.schema";
 import { NextResponse } from "next/server";
 import { hasPrismaCode } from "../wallets/route";
+import { getWalletBalances } from "@/lib/wallet-balance";
 
 export async function POST(req: Request) {
   const userId = await getUserId();
@@ -35,32 +36,8 @@ export async function POST(req: Request) {
         }
         // 2. check balance from wallet
         if (fromWalletId) {
-          const [txSums, transfersIn, transfersOut] = await Promise.all([
-            tx.transaction.groupBy({
-              by: ["type"],
-              where: { walletId: fromWalletId, userId },
-              _sum: { amount: true },
-            }),
-            tx.transfer.aggregate({
-              where: { toWalletId: fromWalletId, userId },
-              _sum: { amount: true },
-            }),
-            tx.transfer.aggregate({
-              where: { fromWalletId, userId },
-              _sum: { amount: true },
-            }),
-          ]);
-
-          const txBalance = txSums.reduce((sum, s) => {
-            const value = Number(s._sum.amount ?? 0);
-            return sum + (s.type === "INCOME" ? value : -value);
-          }, 0);
-
-          const balance =
-            txBalance +
-            Number(transfersIn._sum.amount ?? 0) -
-            Number(transfersOut._sum.amount ?? 0);
-
+          const balances = await getWalletBalances(tx, userId);
+          const balance = balances.get(fromWalletId) ?? 0;
           if (balance < amount) {
             return { status: "insufficient_balance", balance } as const;
           }

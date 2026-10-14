@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/session";
+import { getWalletBalances } from "@/lib/wallet-balance";
 import { walletInputSchema } from "@/schemas/wallet.schema";
 import { NextResponse } from "next/server";
 
@@ -62,11 +63,7 @@ export async function GET() {
     let wallets = await prisma.wallet.findMany({
       where: { userId },
       orderBy: { createdAt: "asc" },
-      select: {
-        name: true,
-        id: true,
-        createdAt: true,
-      },
+      select,
     });
 
     if (wallets.length === 0) {
@@ -79,41 +76,8 @@ export async function GET() {
       wallets = [created];
     }
 
-    const [txSums, transferIns, transferOuts] = await Promise.all([
-      prisma.transaction.groupBy({
-        by: ["walletId", "type"],
-        where: { userId },
-        _sum: { amount: true },
-      }),
-      prisma.transfer.groupBy({
-        by: ["toWalletId"],
-        where: { userId, toWalletId: { not: null } },
-        _sum: { amount: true },
-      }),
-      prisma.transfer.groupBy({
-        by: ["fromWalletId"],
-        where: { userId, fromWalletId: { not: null } },
-        _sum: { amount: true },
-      }),
-    ]);
-    const balanceByWallet = new Map<string, number>();
+    const balanceByWallet = await getWalletBalances(prisma, userId);
 
-    const add = (walletId: string, value: number) =>
-      balanceByWallet.set(
-        walletId,
-        (balanceByWallet.get(walletId) ?? 0) + value,
-      );
-
-    for (const s of txSums) {
-      const amount = Number(s._sum.amount ?? 0);
-      add(s.walletId, s.type === "INCOME" ? amount : -amount);
-    }
-    for (const s of transferIns) {
-      if (s.toWalletId) add(s.toWalletId, Number(s._sum.amount ?? 0));
-    }
-    for (const s of transferOuts) {
-      if (s.fromWalletId) add(s.fromWalletId, -Number(s._sum.amount ?? 0));
-    }
     const result = wallets.map((w) => ({
       ...w,
       createdAt: w.createdAt.toISOString(),
