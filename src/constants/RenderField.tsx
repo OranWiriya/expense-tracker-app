@@ -17,8 +17,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatNumberWithCommas, stripCommas } from "@/lib/format-number";
+import { SelectItemType } from "@/lib/select-options";
 import { TransactionFormValues } from "@/schemas/transaction.schema";
-import { Control, Controller, useWatch } from "react-hook-form";
+import {
+  Control,
+  Controller,
+  UseFormSetValue,
+  useWatch,
+} from "react-hook-form";
 
 const SELECT_LABELS = {
   walletId: "Wallet",
@@ -29,14 +35,19 @@ const RenderField = ({
   type,
   name,
   control,
+  itemDatas,
   onValueChange,
+  onNewTagNamesChange,
 }: {
   type: string;
   name: keyof TransactionFormValues;
   control: Control<TransactionFormValues>;
+  itemDatas?: SelectItemType[];
   onValueChange?: (val: string) => void;
+  onNewTagNamesChange?: UseFormSetValue<TransactionFormValues>;
 }) => {
   const currentType = useWatch({ control, name: "type" });
+  const newTagNames = useWatch({ control, name: "newTagNames" }) ?? [];
   return (
     <Controller
       name={name}
@@ -72,26 +83,29 @@ const RenderField = ({
             );
           }
           case "select": {
-            let itemData: { value: string; label: string }[] = [];
-            if (name === "walletId") itemData = accountItems;
+            let itemDataDefualt: SelectItemType[] = [];
+            if (name === "walletId")
+              itemDataDefualt = itemDatas ?? accountItems;
             if (name === "categoryId") {
-              itemData = currentType === "expense" ? expenseItems : IncomeItems;
+              itemDataDefualt =
+                currentType === "EXPENSE" ? expenseItems : IncomeItems;
             }
             if (name === "type")
-              itemData = [
+              itemDataDefualt = [
                 {
-                  value: "expense",
+                  value: "EXPENSE",
                   label: "Expense",
                 },
                 {
-                  value: "income",
+                  value: "INCOME",
                   label: "Income",
                 },
               ];
+            const items = itemDataDefualt;
             return (
               <>
                 <Select
-                  items={itemData}
+                  items={items}
                   value={(field.value as string) ?? ""}
                   onValueChange={(val) => {
                     field.onChange(val ?? "");
@@ -106,7 +120,7 @@ const RenderField = ({
                       <SelectLabel>
                         {SELECT_LABELS[name as keyof typeof SELECT_LABELS]}
                       </SelectLabel>
-                      {itemData.map((item) => (
+                      {items.map((item) => (
                         <SelectItem key={item.value} value={item.value}>
                           {item.label}
                         </SelectItem>
@@ -125,6 +139,10 @@ const RenderField = ({
               <AppMultipleSelect
                 value={field.value as string[]}
                 onChange={field.onChange}
+                newTagNames={newTagNames}
+                onNewTagNamesChange={(name) =>
+                  onNewTagNamesChange?.("newTagNames", name)
+                }
               />
             );
           }

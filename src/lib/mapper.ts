@@ -2,16 +2,16 @@ import type { Prisma } from "@/generated/prisma/client"; // path ตาม outpu
 import { Transaction } from "@/schemas/transaction.schema";
 
 type TransactionRow = Prisma.TransactionGetPayload<{
-  include: { tags: { select: { id: true } } };
+  include: { tags: { select: { id: true; name: true } } };
 }>;
 
 export const toTransactionDto = (row: TransactionRow): Transaction => ({
   transactionId: row.id,
   walletId: row.walletId,
   categoryId: row.category,
-  type: row.type as Transaction["type"],
+  type: row.type,
   amount: Number(row.amount), // Decimal → number
-  tagIds: row.tags.map((t) => t.id),
+  tags: row.tags.map((t) => ({ tagId: t.id, name: t.name })),
   date: row.date.toISOString(),
   description: row.note ?? "",
 });
