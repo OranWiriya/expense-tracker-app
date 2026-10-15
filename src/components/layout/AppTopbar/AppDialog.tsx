@@ -17,11 +17,13 @@ import {
   TransactionFormValues,
   transactionInputSchema,
 } from "@/schemas/transaction.schema";
-import { useTransactionStore } from "@/store";
 import { useState } from "react";
 import { toast } from "@/components/ui/toast";
 import RenderField from "@/constants/RenderField";
-
+import { useCreateTransaction } from "@/hooks/useTransaction";
+import { useWalletList } from "@/hooks/useWallet";
+import { walletsToSelectItems } from "@/lib/select-options";
+import { TransactionType } from "@/generated/prisma/enums";
 const expenseHeader = {
   Title: "Expense Amount",
   SubTitle: "Make a Expense",
@@ -34,10 +36,11 @@ const incomeHeader = {
 
 const defaultValues: TransactionFormValues = {
   walletId: "",
-  categoryId: "",
-  type: "expense",
+  categoryId: "food",
+  type: "EXPENSE",
   amount: 0,
   tagIds: [],
+  newTagNames: [],
   date: "",
   description: "",
 };
@@ -57,8 +60,9 @@ const fieldConfig: {
 
 const AppDialog = () => {
   const [open, setOpen] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<string>("expense");
-  const { addTransaction } = useTransactionStore();
+  const [activeTab, setActiveTab] = useState<TransactionType>("EXPENSE");
+  const { mutate: createTransaction, isPending } = useCreateTransaction();
+  const { data: wallets } = useWalletList();
   const transactionForm = useForm<TransactionFormValues>({
     resolver: zodResolver(
       transactionInputSchema,
@@ -66,44 +70,69 @@ const AppDialog = () => {
     defaultValues,
   });
 
+  const resetDialog = () => {
+    transactionForm.reset();
+    setActiveTab("EXPENSE");
+  };
+
   const handleTabChange = (tab: string) => {
-    const nextType = tab as "expense" | "income";
+    const nextType = tab as "EXPENSE" | "INCOME";
     setActiveTab(nextType);
     transactionForm.setValue("type", nextType, { shouldValidate: false });
-    transactionForm.setValue("categoryId", "", {
+    transactionForm.setValue("categoryId", null, {
       shouldValidate: false,
     });
   };
 
   const onSubmitTransaction = transactionForm.handleSubmit((values) => {
-    addTransaction(values);
-    transactionForm.reset();
-    setActiveTab("expense");
-    setOpen(false);
-    toast.add({
-      title: "Success",
-      description: "Transaction added successfully",
-      type: "success",
+    createTransaction(values, {
+      onSuccess: () => {
+        console.log("success");
+        resetDialog();
+        toast.add({
+          title: "Success",
+          description: "Transaction added successfully",
+          type: "success",
+        });
+        setActiveTab("EXPENSE");
+        setOpen(false);
+      },
+      onError: (e) => {
+        console.log(e.message);
+        toast.add({
+          title: "Error",
+          description: e.message ?? "Something went wrong",
+          type: "error",
+        });
+      },
     });
   });
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) {
+          resetDialog();
+        }
+      }}
+    >
       <DialogTrigger
         render={<Button className={"cursor-pointer"}>Transcation +</Button>}
       />
       <DialogContent className="sm:max-w-sm">
         <form id="trasaction-form" onSubmit={onSubmitTransaction}>
           <Tabs
-            defaultValue="expense"
+            defaultValue="EXPENSE"
             value={activeTab}
             onValueChange={handleTabChange}
           >
             <TabsList>
-              <TabsTrigger value="expense">Expense</TabsTrigger>
-              <TabsTrigger value="income">Income</TabsTrigger>
+              <TabsTrigger value="EXPENSE">Expense</TabsTrigger>
+              <TabsTrigger value="INCOME">Income</TabsTrigger>
             </TabsList>
-            <TabsContent value="expense">
+            <TabsContent value="EXPENSE">
               <DialogHeader className={"py-4"}>
                 <DialogTitle>{expenseHeader.Title}</DialogTitle>
                 <DialogDescription>{expenseHeader.SubTitle}</DialogDescription>
@@ -124,13 +153,15 @@ const AppDialog = () => {
                       type={field.type}
                       name={field.name}
                       control={transactionForm.control}
+                      itemDatas={walletsToSelectItems(wallets || [])}
+                      onNewTagNamesChange={transactionForm.setValue}
                     />
                   </Field>
                 ))}
               </FieldGroup>
             </TabsContent>
 
-            <TabsContent value="income">
+            <TabsContent value="INCOME">
               <DialogHeader className={"py-4"}>
                 <DialogTitle>{incomeHeader.Title}</DialogTitle>
                 <DialogDescription>{incomeHeader.SubTitle}</DialogDescription>
@@ -151,6 +182,8 @@ const AppDialog = () => {
                       type={field.type}
                       name={field.name}
                       control={transactionForm.control}
+                      itemDatas={walletsToSelectItems(wallets || [])}
+                      onNewTagNamesChange={transactionForm.setValue}
                     />
                   </Field>
                 ))}
@@ -160,8 +193,8 @@ const AppDialog = () => {
         </form>
         <DialogFooter>
           <DialogClose render={<Button variant="outline">Cancel</Button>} />
-          <Button type="submit" form="trasaction-form">
-            Submit
+          <Button type="submit" form="trasaction-form" disabled={isPending}>
+            {isPending ? "Saving..." : "Submit"}
           </Button>
         </DialogFooter>
       </DialogContent>
