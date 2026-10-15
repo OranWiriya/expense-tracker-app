@@ -8,7 +8,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useTransactionStore } from "@/store";
+import { useDeleteTransaction } from "@/hooks/useTransaction";
+
 import { FilePenLineIcon, MoreHorizontal, Trash2Icon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -20,11 +21,11 @@ interface ActionCellProps {
 const ActionCell = (props: ActionCellProps) => {
   const { transactionId } = props;
   const router = useRouter();
-  const { deleteTransaction } = useTransactionStore();
+  const { mutate, isPending } = useDeleteTransaction();
 
   const handleDelete = () => {
     console.log(transactionId);
-    deleteTransaction(transactionId);
+    mutate(transactionId);
     router.refresh();
   };
   return (
@@ -44,7 +45,12 @@ const ActionCell = (props: ActionCellProps) => {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" onClick={handleDelete}>
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={handleDelete}
+              className="cursor-pointer"
+              disabled={isPending}
+            >
               <Trash2Icon />
               Delete transaction
             </DropdownMenuItem>

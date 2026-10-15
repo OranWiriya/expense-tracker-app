@@ -13,6 +13,7 @@ import {
   isCategory,
 } from "@/constants/CategoriesIcon";
 import { Category } from "@/generated/prisma/enums";
+import WalletCell from "./WalletCell";
 
 // Use `accessor` for data columns and `display` for columns without one.
 const columnHelper = createColumnHelper<DataTableFeatures, Transaction>();
@@ -90,7 +91,7 @@ export const columns = columnHelper.columns([
       const formatted = formatNumberByCurrency(amount);
 
       const colorFormatted =
-        row.original.type === "expense" ? "text-pink-600" : "text-lime-600";
+        row.original.type === "EXPENSE" ? "text-pink-600" : "text-lime-600";
 
       return <div className={colorFormatted + " font-medium"}>{formatted}</div>;
     },
@@ -99,7 +100,11 @@ export const columns = columnHelper.columns([
     header: "Wallet",
     size: 15,
     cell: ({ row }) => {
-      return <div>{row.getValue("walletId")}</div>;
+      return (
+        <div>
+          <WalletCell walletId={row.getValue("walletId")} />
+        </div>
+      );
     },
   }),
   columnHelper.accessor("categoryId", {
@@ -119,11 +124,12 @@ export const columns = columnHelper.columns([
       );
     },
   }),
-  columnHelper.accessor("tagIds", {
+  columnHelper.accessor("tags", {
     header: "Tags",
     size: 10,
     cell: ({ row }) => {
-      return <TagCell tagId={String(row.getValue("tagIds"))} />;
+      console.log(row.getValue("tags"));
+      return <TagCell tags={row.getValue("tags")} />;
     },
   }),
   columnHelper.accessor("description", {
