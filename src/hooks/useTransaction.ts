@@ -9,6 +9,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import { tagQueries } from "./useTag";
 
 const BASE = "/api/v1/transactions";
 
@@ -28,7 +29,9 @@ export const useCreateTransaction = () => {
   return useMutation({
     mutationFn: (values: TransactionFormValues) =>
       http.post<Transaction>(BASE, values),
-    onSuccess: () =>
+    onSuccess: () => (
       qc.invalidateQueries({ queryKey: transactionQueries.all() }),
+      qc.invalidateQueries({ queryKey: tagQueries.all() })
+    ),
   });
 };
