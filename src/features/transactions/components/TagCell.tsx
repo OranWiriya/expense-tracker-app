@@ -1,18 +1,19 @@
 import { Badge } from "@/components/ui/badge";
+import { useTagList } from "@/hooks/useTag";
 import { filterTagsById } from "@/lib/tag-utils";
 import { cn } from "@/lib/utils";
-import { useTagStore } from "@/store";
+import { TagsType } from "@/lib/tag-utils";
 
 const scrollbarClassName: string = `overflow-x-auto overflow-y-hidden scroll-fade-x 
 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:mt-2 [&::-webkit-scrollbar-track]:bg-accent 
 [&::-webkit-scrollbar-thumb]:border-[1.5px] [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-clip-padding 
 [&::-webkit-scrollbar-thumb]:bg-zinc-400`;
 
-function TagCell({ tagId }: { tagId: string }) {
-  const tagIds = tagId === "" ? [] : tagId.split(",");
-  const tags = useTagStore((state) => state.tags);
+function TagCell({ tags }: { tags: TagsType[] }) {
+  const tagIds = tags.map((t) => t.tagId);
+  const { data: tagItems = [] } = useTagList();
 
-  const displayTags = filterTagsById(tags, tagIds);
+  const displayTags = filterTagsById(tagItems, tagIds);
 
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
     if (e.deltaY !== 0) {
