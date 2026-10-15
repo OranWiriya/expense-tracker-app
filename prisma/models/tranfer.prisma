@@ -1,0 +1,14 @@
+model Transfer {
+    id           String   @id @default(cuid())
+    userId       String
+    fromWalletId String? // null
+    toWalletId   String? // null 
+    amount       Decimal  @db.Decimal(12, 2)
+    createdAt    DateTime @default(now())
+
+    user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+    fromWallet Wallet? @relation("TransferFrom", fields: [fromWalletId], references: [id], onDelete: SetNull)
+    toWallet   Wallet? @relation("TransferTo", fields: [toWalletId], references: [id], onDelete: SetNull)
+
+    @@index([userId])
+}

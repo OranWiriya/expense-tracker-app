@@ -15,7 +15,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Menu } from "lucide-react";
-import Link from "next/link";
+import WalletDialog, { WalletDialogType } from "./WalletDialog";
+import { useState } from "react";
+import { formatNumberByCurrency } from "@/lib/format-number";
 
 interface WalletCardProps {
   type?: "total" | "wallet";
@@ -25,7 +27,15 @@ interface WalletCardProps {
   walletId?: string;
 }
 
-const MOCKWALLETID = "1";
+const totalClassName = "min-h-12 flex justify-between items-center";
+
+const balanceClassName = (totalBalance: number) => {
+  let classNameCustom = "";
+  if (totalBalance === 0) classNameCustom = "text-mute-foreground";
+  else
+    classNameCustom = `${totalBalance < 0 && totalBalance !== 0 ? "text-red-500" : "text-green-500"}`;
+  return classNameCustom + " font-semibold";
+};
 
 const WalletCard = (props: WalletCardProps) => {
   const {
@@ -35,37 +45,64 @@ const WalletCard = (props: WalletCardProps) => {
     type = "wallet",
     walletId,
   } = props;
+  const [dialogOpen, setDialogOpen] = useState<boolean>(false);
+  const [dialogType, setDialogType] = useState<WalletDialogType>(
+    WalletDialogType.DEPOSIT,
+  );
+
+  const handleOpenDialog = (type: WalletDialogType) => {
+    setDialogType(type);
+    setDialogOpen(true);
+  };
+
   return (
-    <Card className=" bg-primary/10 p-0">
-      <CardHeader className="bg-primary min-h-12 flex justify-between items-center ">
+    <Card
+      className={type === "total" ? "bg-primary/10 p-0" : "bg-secondary/10 p-0"}
+    >
+      <CardHeader
+        className={
+          type === "total"
+            ? "bg-primary " + totalClassName
+            : "bg-secondary " + totalClassName
+        }
+      >
         <CardTitle className="text-lg">{title}</CardTitle>
         {type === "wallet" ? (
           <CardAction className="self-center">
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={
-                  <Button variant="ghost" size="icon">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={"cursor-pointer"}
+                  >
                     {<Menu />}
                   </Button>
                 }
               />
               <DropdownMenuContent className="w-32 **:cursor-pointer">
                 <DropdownMenuGroup>
-                  <DropdownMenuItem>
-                    <Link href={"/Deposit"}>Deposit</Link>
+                  <DropdownMenuItem
+                    variant="default"
+                    onClick={() => handleOpenDialog(WalletDialogType.DEPOSIT)}
+                  >
+                    Deposit
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Link href={"/withdraw"}>Withdraw</Link>
+                  <DropdownMenuItem
+                    variant="default"
+                    onClick={() => handleOpenDialog(WalletDialogType.WITHDRAW)}
+                  >
+                    Withdraw
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                  <DropdownMenuItem variant="destructive">
-                    <Link
-                      href={`/Delete?walletId=${walletId ? walletId : MOCKWALLETID}`}
-                    >
-                      Delete Wallet
-                    </Link>
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={() => handleOpenDialog(WalletDialogType.DELETE)}
+                  >
+                    Delete
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
               </DropdownMenuContent>
@@ -73,17 +110,24 @@ const WalletCard = (props: WalletCardProps) => {
           </CardAction>
         ) : null}
       </CardHeader>
-      <CardContent className="min-h-12 justify-center text-lg">
+      <CardContent className="min-h-10 text-lg ">
         <div>
           <span>{subTitle}</span>
           <span> : </span>
-          <span
-            className={`${totalBalance < 0 ? "text-red-500" : "text-green-500"} font-bold`}
-          >
-            {totalBalance} THB
+          <span className={balanceClassName(totalBalance)}>
+            {formatNumberByCurrency(totalBalance)} THB
           </span>
         </div>
       </CardContent>
+      {type === "wallet" && (
+        <WalletDialog
+          type={dialogType}
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          title={title}
+          walletId={walletId}
+        />
+      )}
     </Card>
   );
 };
