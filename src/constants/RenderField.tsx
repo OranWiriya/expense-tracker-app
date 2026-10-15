@@ -18,7 +18,10 @@ import {
 } from "@/components/ui/select";
 import { formatNumberWithCommas, stripCommas } from "@/lib/format-number";
 import { SelectItemType } from "@/lib/select-options";
-import { TransactionFormValues } from "@/schemas/transaction.schema";
+import {
+  TransactionFormInput,
+  TransactionFormOutput,
+} from "@/schemas/transaction.schema";
 import {
   Control,
   Controller,
@@ -40,11 +43,11 @@ const RenderField = ({
   onNewTagNamesChange,
 }: {
   type: string;
-  name: keyof TransactionFormValues;
-  control: Control<TransactionFormValues>;
+  name: keyof TransactionFormInput;
+  control: Control<TransactionFormInput, unknown, TransactionFormOutput>;
   itemDatas?: SelectItemType[];
-  onValueChange?: (val: string) => void;
-  onNewTagNamesChange?: UseFormSetValue<TransactionFormValues>;
+  onValueChange?: (val: string | null) => void;
+  onNewTagNamesChange?: UseFormSetValue<TransactionFormInput>;
 }) => {
   const currentType = useWatch({ control, name: "type" });
   const newTagNames = useWatch({ control, name: "newTagNames" }) ?? [];
@@ -108,8 +111,8 @@ const RenderField = ({
                   items={items}
                   value={(field.value as string) ?? ""}
                   onValueChange={(val) => {
-                    field.onChange(val ?? "");
-                    onValueChange?.(val ?? "");
+                    field.onChange(val ?? null);
+                    onValueChange?.(val ?? null);
                   }}
                 >
                   <SelectTrigger aria-invalid={fieldState.invalid}>

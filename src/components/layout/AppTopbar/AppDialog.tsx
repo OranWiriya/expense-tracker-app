@@ -1,4 +1,4 @@
-import { Resolver, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +14,9 @@ import {
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  TransactionFormValues,
+  TransactionFormInput,
+  TransactionFormOutput,
+  transactionFormSchema,
   transactionInputSchema,
 } from "@/schemas/transaction.schema";
 import { useState } from "react";
@@ -34,9 +36,9 @@ const incomeHeader = {
   SubTitle: "Make a Income",
 };
 
-const defaultValues: TransactionFormValues = {
+const defaultValues: TransactionFormInput = {
   walletId: "",
-  categoryId: "food",
+  categoryId: null,
   type: "EXPENSE",
   amount: 0,
   tagIds: [],
@@ -46,7 +48,7 @@ const defaultValues: TransactionFormValues = {
 };
 
 const fieldConfig: {
-  name: keyof TransactionFormValues;
+  name: keyof TransactionFormInput;
   label: string;
   type: string;
 }[] = [
@@ -63,10 +65,12 @@ const AppDialog = () => {
   const [activeTab, setActiveTab] = useState<TransactionType>("EXPENSE");
   const { mutate: createTransaction, isPending } = useCreateTransaction();
   const { data: wallets } = useWalletList();
-  const transactionForm = useForm<TransactionFormValues>({
-    resolver: zodResolver(
-      transactionInputSchema,
-    ) as Resolver<TransactionFormValues>,
+  const transactionForm = useForm<
+    TransactionFormInput,
+    unknown,
+    TransactionFormOutput
+  >({
+    resolver: zodResolver(transactionFormSchema),
     defaultValues,
   });
 
@@ -85,20 +89,18 @@ const AppDialog = () => {
   };
 
   const onSubmitTransaction = transactionForm.handleSubmit((values) => {
-    createTransaction(values, {
+    const verifiedValue = transactionInputSchema.parse(values);
+    createTransaction(verifiedValue, {
       onSuccess: () => {
-        console.log("success");
         resetDialog();
         toast.add({
           title: "Success",
           description: "Transaction added successfully",
           type: "success",
         });
-        setActiveTab("EXPENSE");
         setOpen(false);
       },
       onError: (e) => {
-        console.log(e.message);
         toast.add({
           title: "Error",
           description: e.message ?? "Something went wrong",
@@ -122,12 +124,8 @@ const AppDialog = () => {
         render={<Button className={"cursor-pointer"}>Transcation +</Button>}
       />
       <DialogContent className="sm:max-w-sm">
-        <form id="trasaction-form" onSubmit={onSubmitTransaction}>
-          <Tabs
-            defaultValue="EXPENSE"
-            value={activeTab}
-            onValueChange={handleTabChange}
-          >
+        <form id="transaction-form" onSubmit={onSubmitTransaction}>
+          <Tabs value={activeTab} onValueChange={handleTabChange}>
             <TabsList>
               <TabsTrigger value="EXPENSE">Expense</TabsTrigger>
               <TabsTrigger value="INCOME">Income</TabsTrigger>
@@ -193,7 +191,7 @@ const AppDialog = () => {
         </form>
         <DialogFooter>
           <DialogClose render={<Button variant="outline">Cancel</Button>} />
-          <Button type="submit" form="trasaction-form" disabled={isPending}>
+          <Button type="submit" form="transaction-form" disabled={isPending}>
             {isPending ? "Saving..." : "Submit"}
           </Button>
         </DialogFooter>
