@@ -44,6 +44,38 @@ export const useCreateTransaction = () => {
   });
 };
 
+export const useUpdateTransaction = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      transactionId,
+      values,
+    }: {
+      transactionId: string;
+      values: TransactionPayload;
+    }) => {
+      await http.patch<Transaction>(`${BASE}/${transactionId}`, values);
+    },
+    onSuccess: (_data, { transactionId }) => {
+      qc.invalidateQueries({ queryKey: transactionQueries.all() });
+      qc.invalidateQueries({ queryKey: walletQueries.all() });
+      qc.invalidateQueries({ queryKey: tagQueries.all() });
+      toast.add({
+        title: "Success",
+        description: `Transaction ${transactionId} updated`,
+        type: "success",
+      });
+    },
+    onError: (error) => {
+      toast.add({
+        title: "Error",
+        description: error.message || "Something went wrong",
+        type: "error",
+      });
+    },
+  });
+};
+
 export const useDeleteTransaction = () => {
   const qc = useQueryClient();
   return useMutation({
@@ -65,5 +97,28 @@ export const useDeleteTransaction = () => {
         type: "error",
       });
     },
+  });
+};
+
+export const useBulkDeleteTransactions = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (ids: string[]) =>
+      http.post<{ count: number }>(`${BASE}/bulk-delete`, { ids }),
+    onSuccess: ({ count }) => {
+      qc.invalidateQueries({ queryKey: transactionQueries.all() });
+      qc.invalidateQueries({ queryKey: walletQueries.all() });
+      toast.add({
+        title: "Deleted",
+        description: `${count} transactions deleted`,
+        type: "success",
+      });
+    },
+    onError: (error) =>
+      toast.add({
+        title: "Error",
+        description: error.message || "Something went wrong",
+        type: "error",
+      }),
   });
 };

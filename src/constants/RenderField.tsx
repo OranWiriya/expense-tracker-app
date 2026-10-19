@@ -87,8 +87,7 @@ const RenderField = ({
           }
           case "select": {
             let itemDataDefualt: SelectItemType[] = [];
-            if (name === "walletId")
-              itemDataDefualt = itemDatas ?? accountItems;
+            if (name === "walletId") itemDataDefualt = itemDatas ?? [];
             if (name === "categoryId") {
               itemDataDefualt =
                 currentType === "EXPENSE" ? expenseItems : IncomeItems;
@@ -143,8 +142,10 @@ const RenderField = ({
                 value={field.value as string[]}
                 onChange={field.onChange}
                 newTagNames={newTagNames}
-                onNewTagNamesChange={(name) =>
-                  onNewTagNamesChange?.("newTagNames", name)
+                onNewTagNamesChange={(names) =>
+                  onNewTagNamesChange?.("newTagNames", names, {
+                    shouldDirty: true,
+                  })
                 }
               />
             );
