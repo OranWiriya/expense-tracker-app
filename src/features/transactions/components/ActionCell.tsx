@@ -8,25 +8,29 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { TransactionDialog } from "@/features/transactionsDetail/components";
 import { useDeleteTransaction } from "@/hooks/useTransaction";
 
 import { FilePenLineIcon, MoreHorizontal, Trash2Icon } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 interface ActionCellProps {
   transactionId: string;
+  amount: number;
 }
 
 const ActionCell = (props: ActionCellProps) => {
-  const { transactionId } = props;
-  const router = useRouter();
+  const { transactionId, amount } = props;
+  const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   const { mutate, isPending } = useDeleteTransaction();
 
   const handleDelete = () => {
-    console.log(transactionId);
-    mutate(transactionId);
-    router.refresh();
+    mutate(transactionId, {
+      onSuccess: () => {
+        setDialogOpen(false);
+      },
+    });
   };
   return (
     <div className="text-center">
@@ -38,16 +42,18 @@ const ActionCell = (props: ActionCellProps) => {
         <DropdownMenuContent className={"w-48"}>
           <DropdownMenuGroup>
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem>
-              <Link href={`/transactions/${transactionId}`}>
-                <FilePenLineIcon />
-                View transaction details
-              </Link>
-            </DropdownMenuItem>
+            <DropdownMenuItem
+              render={
+                <Link href={`/transactions/${transactionId}`}>
+                  <FilePenLineIcon />
+                  View transaction details
+                </Link>
+              }
+            />
             <DropdownMenuSeparator />
             <DropdownMenuItem
               variant="destructive"
-              onClick={handleDelete}
+              onClick={() => setDialogOpen(true)}
               className="cursor-pointer"
               disabled={isPending}
             >
@@ -57,6 +63,13 @@ const ActionCell = (props: ActionCellProps) => {
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
+      <TransactionDialog
+        open={dialogOpen}
+        setOpen={setDialogOpen}
+        amount={amount}
+        isDeleting={isPending}
+        handleDeleteTransaction={handleDelete}
+      />
     </div>
   );
 };

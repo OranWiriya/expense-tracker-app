@@ -17,7 +17,9 @@ const baseFields = {
   newTagNames: z
     .array(z.string().trim().min(1, "Tag name is required").max(30))
     .default([]),
-  date: z.iso.datetime(),
+  date: z.iso.datetime({
+    error: "Select a date",
+  }),
   description: z.string().default(""),
 };
 // schema for form validation nullable
@@ -50,7 +52,7 @@ export const transactionSchema = transactionInputSchema
   .omit({ newTagNames: true, tagIds: true })
   .extend({
     transactionId: z.string(),
-    tags: z.array(z.object({ tagId: z.string(), name: z.string() })),
+    tags: z.array(z.object({ tagId: z.string(), label: z.string() })),
   });
 
 export type Transaction = z.infer<typeof transactionSchema>;
