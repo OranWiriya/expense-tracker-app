@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "migrate:postgres": "dotenv -e .env -- bunx prisma migrate deploy"
+    "db:migrate": "dotenv run -f .env.local -- prisma migrate dev"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -24,6 +24,8 @@
     "cn": "^0.2.6",
     "date-fns": "^4.4.0",
     "dotenv": "^18.0.4",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.9",
     "lucide-react": "^1.37.0",
     "next": "16.3.3",
     "pg": "^8.23.0",

@@ -10,7 +10,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-const toLocalISOString = (d: Date) => format(d, "yyyy-MM-dd'T'HH:mm:ss");
+const toISOString = (d: Date) => d.toISOString();
 const displayLocalDate = (d: Date) => format(d, "HH:mm:ss dd-MM-yyyy");
 
 const AppDatePicker = (props: {
@@ -22,10 +22,14 @@ const AppDatePicker = (props: {
   const dateObj = value ? parseISO(value) : undefined;
 
   const handleChange = (selectedDate: Date) => {
-    const now = new Date();
+    const baseTime = dateObj ?? new Date();
     const merged = new Date(selectedDate);
-    merged.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
-    onChange(toLocalISOString(merged));
+    merged.setHours(
+      baseTime.getHours(),
+      baseTime.getMinutes(),
+      baseTime.getSeconds(),
+    );
+    onChange(toISOString(merged));
   };
 
   return (

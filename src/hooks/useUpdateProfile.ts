@@ -1,5 +1,6 @@
 import { toast } from "@/components/ui/toast";
 import { authClient } from "@/lib/auth-client";
+import { http } from "@/lib/http";
 import { UpdateProfileFormValues } from "@/schemas/auth.schema";
 import { useMutation } from "@tanstack/react-query";
 
@@ -10,33 +11,20 @@ const useUpdateProfile = () => {
   return useMutation({
     mutationKey: ["updateProfile"],
     mutationFn: async (input: UpdateProfileFormValues) => {
-      const verifyRes = await fetch("/api/v1/profile/verify-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: input.password }),
-      });
-
-      if (!verifyRes.ok) {
-        const data = await verifyRes.json();
-        throw new Error(data.error ?? "Invalid password.");
-      }
+      await http.post<UpdateProfileFormValues>(
+        "/api/v1/profile/verify-password",
+        {
+          password: input.password,
+        },
+      );
+      const { error } = await authClient.updateUser({ name: input.name });
 
       if (input.image) {
         const formdata = new FormData();
         formdata.append("avatar", input.image);
-
-        const imageUpdateRes = await fetch("/api/v1/profile/avatar", {
-          method: "POST",
-          body: formdata,
-        });
-
-        if (!imageUpdateRes.ok) {
-          const data = await imageUpdateRes.json();
-          throw new Error(data.error ?? "Update profile failed.");
-        }
+        await http.post("/api/v1/profile/avatar", formdata);
       }
 
-      const { error } = await authClient.updateUser({ name: input.name });
       if (error) throw new Error(error.message ?? "Update profile failed.");
     },
 

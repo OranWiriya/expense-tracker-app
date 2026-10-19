@@ -3,6 +3,7 @@ import {
   createFilteredRowModel,
   createPaginatedRowModel,
   createSortedRowModel,
+  columnSizingFeature,
   filterFn_includesString,
   rowPaginationFeature,
   rowSelectionFeature,
@@ -10,15 +11,20 @@ import {
   sortFn_alphanumeric,
   sortFn_text,
   tableFeatures,
+  globalFilteringFeature,
+  columnVisibilityFeature,
 } from "@tanstack/react-table";
 
 // New in v9: declare the features this table uses — anything you don't
 // register is tree-shaken out of the bundle.
 export const features = tableFeatures({
   columnFilteringFeature,
+  columnSizingFeature,
   rowPaginationFeature,
   rowSelectionFeature,
   rowSortingFeature,
+  globalFilteringFeature,
+  columnVisibilityFeature,
   filteredRowModel: createFilteredRowModel(),
   paginatedRowModel: createPaginatedRowModel(),
   sortedRowModel: createSortedRowModel(),

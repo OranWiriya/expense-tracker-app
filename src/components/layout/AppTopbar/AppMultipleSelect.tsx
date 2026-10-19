@@ -10,55 +10,52 @@ import {
   ComboboxList,
   ComboboxItem,
 } from "@/components/ui/combobox";
-import { TagsType, useTagStore } from "@/store";
+import { useTagList } from "@/hooks/useTag";
+import { useTagStore } from "@/store";
 
 import { useMemo, useState } from "react";
 
 interface AppMultipleSelectProps {
   value: string[];
   onChange: (value: string[]) => void;
+  newTagNames: string[];
+  onNewTagNamesChange: (names: string[]) => void;
 }
+const NEW_PREFIX = "new:";
+
 const AppMultipleSelect = (props: AppMultipleSelectProps) => {
-  const { value, onChange } = props;
+  const { value, onChange, newTagNames, onNewTagNamesChange } = props;
   const anchor = useComboboxAnchor();
-  const { tags, addTag } = useTagStore();
-
-  const [newlyTags, setNewlyTags] = useState<string[]>([]);
   const [inputValue, setInputValue] = useState<string>("");
+  const { data: tags = [] } = useTagList();
 
-  const itemsToRender = useMemo(
+  const comboValue = [...value, ...newTagNames.map((n) => `${NEW_PREFIX}${n}`)];
+
+  const sortedTagIds = useMemo(
     () =>
-      [...tags].sort(
-        (a, b) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-      ),
+      [...tags]
+        .sort(
+          (a, b) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+        )
+        .map((t) => t.tagId),
     [tags],
   );
-
   const createTag = (raw: string) => {
-    let selectedTag: TagsType;
-    const tag = raw.trim();
-    const currentValue = value ?? [];
-    const alreadyInList = tags.find(
-      (item) => String(item.label).toLowerCase() === tag.toLowerCase(),
+    const name = raw.trim();
+    if (!name) return;
+
+    const existing = tags.find(
+      (t) => t.label.toLowerCase() === name.toLowerCase(),
     );
 
-    if (!tag) return;
-    if (alreadyInList) {
-      selectedTag = alreadyInList;
-    } else {
-      selectedTag = {
-        tagId: crypto.randomUUID().slice(0, 4),
-        label: tag,
-        createdAt: new Date().toISOString(),
-      };
-      setNewlyTags((prev) => [...prev, selectedTag.tagId]);
-      addTag(selectedTag);
+    if (existing) {
+      if (!value.includes(existing.tagId)) onChange([...value, existing.tagId]);
+    } else if (
+      !newTagNames.some((n) => n.toLowerCase() === name.toLowerCase())
+    ) {
+      onNewTagNamesChange([...newTagNames, name]);
     }
-    if (!currentValue.includes(selectedTag.tagId)) {
-      onChange([...currentValue, selectedTag.tagId]);
-    }
-
     setInputValue("");
   };
 
@@ -69,18 +66,23 @@ const AppMultipleSelect = (props: AppMultipleSelectProps) => {
     }
   };
 
-  const classNameForNewChip = (v: string) => {
-    if (newlyTags.includes(v)) return "bg-primary text-primary-foreground";
-    return "bg-muted text-muted-foreground";
+  const handleOnChange = (next: string[]) => {
+    const nextIds = next.filter((v) => !v.startsWith(NEW_PREFIX));
+    const nextNames = next
+      .filter((v) => v.startsWith(NEW_PREFIX))
+      .map((v) => v.slice(NEW_PREFIX.length));
+
+    onChange(nextIds);
+    onNewTagNamesChange(nextNames);
   };
 
   return (
     <Combobox
       multiple
       autoHighlight
-      items={itemsToRender.map((i) => i.label)}
-      value={value}
-      onValueChange={onChange}
+      items={sortedTagIds}
+      value={comboValue}
+      onValueChange={handleOnChange}
       inputValue={inputValue}
       onInputValueChange={setInputValue}
     >
@@ -88,11 +90,20 @@ const AppMultipleSelect = (props: AppMultipleSelectProps) => {
         <ComboboxValue>
           {(values: string[]) => (
             <>
-              {values.map((v: string) => (
-                <ComboboxChip key={v} className={classNameForNewChip(v)}>
-                  {tags.find((i) => i.tagId === v)?.label}
-                </ComboboxChip>
-              ))}
+              {values.map((v) =>
+                v.startsWith(NEW_PREFIX) ? (
+                  <ComboboxChip
+                    key={v}
+                    className="bg-primary text-primary-foreground"
+                  >
+                    {v.slice(NEW_PREFIX.length)}
+                  </ComboboxChip>
+                ) : (
+                  <ComboboxChip key={v}>
+                    {tags.find((t) => t.tagId === v)?.label}
+                  </ComboboxChip>
+                ),
+              )}
               <ComboboxChipsInput
                 placeholder={
                   values.length > 0 ? "" : "Select or create tag(s) here"
@@ -110,12 +121,9 @@ const AppMultipleSelect = (props: AppMultipleSelectProps) => {
             : "No items found."}
         </ComboboxEmpty>
         <ComboboxList>
-          {(item) => (
-            <ComboboxItem
-              key={item}
-              value={tags.find((i) => i.label === item)?.tagId}
-            >
-              {item}
+          {(tagId: string) => (
+            <ComboboxItem key={tagId} value={tagId}>
+              {tags.find((t) => t.tagId === tagId)?.label}
             </ComboboxItem>
           )}
         </ComboboxList>

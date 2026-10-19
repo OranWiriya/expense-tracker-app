@@ -41,7 +41,6 @@ const RegisterForm = (props: RegisterFormProps) => {
           title: "Success",
           description: "Account added successfully",
           type: "success",
-          timeout: 3000,
         });
         if (setSigninState) {
           setSigninState(true);

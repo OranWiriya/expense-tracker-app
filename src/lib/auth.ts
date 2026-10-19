@@ -10,6 +10,22 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          try {
+            await prisma.wallet.create({
+              data: { userId: user.id, name: "Account_1" },
+            });
+          } catch (e) {
+            // don't block signup if this fails
+            console.error("Failed to create default wallet", e);
+          }
+        },
+      },
+    },
+  },
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 4,
