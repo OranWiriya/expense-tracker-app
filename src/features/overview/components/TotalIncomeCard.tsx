@@ -14,33 +14,33 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { SummaryItem } from "@/hooks/useTransaction";
 import {
-  formatNumberWithCommas,
+  formatNumberByCurrency,
   responsiveTextSize,
 } from "@/lib/format-number";
-import { groupByMonth } from "@/lib/transaction-calculations";
+
 import { getCurrentMonth, getLastMonth } from "@/lib/utils";
-import { useTransactionStore } from "@/store";
-import { useMemo } from "react";
 
-const TotalIncomeCard = () => {
-  const { transactions } = useTransactionStore();
+interface TotalIncomeCardProps {
+  data: SummaryItem[];
+}
 
-  const IncomeData = useMemo(() => {
-    const summaryEachMonth = groupByMonth(transactions);
+const TotalIncomeCard = (props: TotalIncomeCardProps) => {
+  const { data } = props;
 
-    return summaryEachMonth ?? 0;
-  }, [transactions]);
+  const current = data.find((item) => item.period === getCurrentMonth());
+  const last = data.find((item) => item.period === getLastMonth());
 
-  const incomeLastMonth = IncomeData[getLastMonth()]?.income ?? 0;
-  const incomeThisMonth = IncomeData[getCurrentMonth()]?.income ?? 0;
+  const incomeLastMonth = last?.income ?? 0;
+  const incomeThisMonth = current?.income ?? 0;
 
-  const differantPercent = incomeLastMonth
+  const diffPercent = incomeLastMonth
     ? Math.round(((incomeThisMonth - incomeLastMonth) / incomeLastMonth) * 100)
-    : 0;
-  console.log(differantPercent);
+    : null;
+
   const displayData = incomeThisMonth
-    ? formatNumberWithCommas(incomeThisMonth.toLocaleString())
+    ? formatNumberByCurrency(incomeThisMonth)
     : "-";
 
   return (
@@ -49,15 +49,15 @@ const TotalIncomeCard = () => {
         <CardTitle className="text-2xl text-green-500">Total Income</CardTitle>
         <CardDescription>Show your total income</CardDescription>
         <CardAction>
-          {differantPercent !== 0 && (
+          {diffPercent !== null && (
             <Tooltip>
               <TooltipTrigger>
-                <Badge variant={differantPercent > 0 ? "green" : "destructive"}>
-                  {differantPercent}%
+                <Badge variant={diffPercent > 0 ? "green" : "destructive"}>
+                  {diffPercent}%
                 </Badge>
               </TooltipTrigger>
               <TooltipContent>
-                {differantPercent > 0
+                {diffPercent > 0
                   ? "Received more than last month"
                   : "Received less than last month"}
               </TooltipContent>

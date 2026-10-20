@@ -2,6 +2,7 @@
 
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -16,12 +17,15 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import {
-  filterByYear,
-  groupByCategory,
-  groupByMonth,
-} from "@/lib/transaction-calculations";
-import { useTransactionStore } from "@/store";
-import { useMemo } from "react";
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { CategorySummary, SummaryItem } from "@/hooks/useTransaction";
+import { useState } from "react";
 import { Bar, BarChart, CartesianGrid, Pie, PieChart, XAxis } from "recharts";
 
 const MonthNames = {
@@ -45,64 +49,58 @@ type barChartType = {
   expense: number;
 };
 type pieChartType = {
-  catagory: string;
+  category: string;
   value: number;
   fill: string;
 };
 
+type CategoryKind = "expense" | "income";
+
 interface TotalGraphCardProps {
-  type: "balance" | "catagory";
+  type: "balance" | "category";
+  summaryDatas?: SummaryItem[];
+  categoryData?: CategorySummary;
 }
 
-type TotalContentGraphProps =
-  | { type: "balance"; chartData: barChartType[] }
-  | { type: "catagory"; chartData: pieChartType[] };
-
+interface GraphContentProps {
+  type: "balance" | "category";
+  barData: barChartType[];
+  pieData: pieChartType[];
+  categoryType: CategoryKind;
+}
 const chartConfig = {
   income: {
     label: "Income",
-    color: "var(--chart-green)",
+    color: "var(--chart-6)",
   },
   expense: {
     label: "Expense",
-    color: "var(--chart-2)",
-  },
-} satisfies ChartConfig;
-
-const chartConfigPie = {
-  value: {
-    label: "Value",
-  },
-  shopping: {
-    label: "shopping",
-    color: "var(--chart-1)",
-  },
-  food: {
-    label: "food",
-    color: "var(--chart-2)",
-  },
-  entertainment: {
-    label: "entertainment",
     color: "var(--chart-3)",
   },
-  clothing: {
-    label: "clothing",
-    color: "var(--chart-4)",
-  },
-  etc: {
-    label: "etc",
-    color: "var(--chart-5)",
-  },
 } satisfies ChartConfig;
 
-const currentYear = new Date().getFullYear().toString();
+const expenseConfig = {
+  food: { label: "food", color: "var(--chart-2)" },
+  entertainment: { label: "entertainment", color: "var(--chart-3)" },
+  clothing: { label: "clothing", color: "var(--chart-4)" },
+  etc: { label: "etc", color: "var(--chart-5)" },
+} satisfies ChartConfig;
 
-const switchContentGraph = (props: TotalContentGraphProps) => {
-  const { type, chartData } = props;
+const incomeConfig = {
+  salary: { label: "salary", color: "var(--chart-6)" },
+  gift: { label: "gift", color: "var(--chart-7)" },
+  etc: { label: "etc", color: "var(--chart-8)" },
+} satisfies ChartConfig;
+
+const chartConfigPie: Record<CategoryKind, ChartConfig> = {
+  expense: expenseConfig,
+  income: incomeConfig,
+};
+
+const GraphContent = (props: GraphContentProps) => {
+  const { type, barData, pieData, categoryType } = props;
   switch (type) {
     case "balance": {
-      const barChartData = chartData;
-      console.log(barChartData);
       return (
         <>
           <CardHeader>
@@ -110,17 +108,17 @@ const switchContentGraph = (props: TotalContentGraphProps) => {
             <CardDescription>Show your balance graph this year</CardDescription>
           </CardHeader>
           <CardContent>
-            {barChartData.length > 0 ? (
+            {barData.length > 0 ? (
               <ChartContainer
                 config={chartConfig}
-                className="mx-auto aspect-square w-full"
+                className="mx-auto min-h-64 w-full"
               >
-                <BarChart accessibilityLayer data={barChartData}>
+                <BarChart accessibilityLayer data={barData}>
                   <CartesianGrid vertical={false} />
                   <XAxis
                     dataKey="month"
                     tickLine={false}
-                    tickMargin={10}
+                    tickMargin={5}
                     axisLine={false}
                     tickFormatter={(value) => value.slice(0, 3)}
                   />
@@ -142,27 +140,20 @@ const switchContentGraph = (props: TotalContentGraphProps) => {
                 </BarChart>
               </ChartContainer>
             ) : (
-              <>no infomation for now</>
+              <>no information for now</>
             )}
           </CardContent>
         </>
       );
     }
-    case "catagory": {
-      const pieChartData = chartData;
+    case "category": {
       return (
         <>
-          <CardHeader>
-            <CardTitle className="text-2xl">Catagory Graph</CardTitle>
-            <CardDescription>
-              explain your expense each catagory this year
-            </CardDescription>
-          </CardHeader>
           <CardContent>
-            {pieChartData.length > 0 ? (
+            {pieData.length > 0 ? (
               <ChartContainer
-                config={chartConfigPie}
-                className="mx-auto aspect-square w-full "
+                config={chartConfigPie[categoryType]}
+                className="mx-auto w-full "
               >
                 <PieChart>
                   <ChartTooltip
@@ -170,81 +161,106 @@ const switchContentGraph = (props: TotalContentGraphProps) => {
                     content={<ChartTooltipContent hideLabel />}
                   />
                   <Pie
-                    data={pieChartData}
+                    data={pieData}
                     dataKey="value"
-                    nameKey="catagory"
+                    nameKey="category"
                     //this proporty deprecated but onminample still using this way so we go on like this
                     activeShape={{
                       fill: "var(--primary)",
                     }}
                   />
                   <ChartLegend
-                    content={<ChartLegendContent nameKey="catagory" />}
+                    content={<ChartLegendContent nameKey="category" />}
                     className="-translate-y-2 flex-wrap gap-2 *:basis-1/4 *:justify-center"
                   />
                 </PieChart>
               </ChartContainer>
             ) : (
-              <>no infomation for now</>
+              <>no information for now</>
             )}
           </CardContent>
         </>
       );
     }
     default:
-      return <>no infomation</>;
+      return <>no information</>;
   }
 };
 
 const TotalGraphCard = (props: TotalGraphCardProps) => {
-  const { type } = props;
-  const transactions = useTransactionStore((s) => s.transactions);
-
-  const transactionsThisYear = useMemo(
-    () => filterByYear(transactions, currentYear),
-    [transactions],
+  const { type, summaryDatas, categoryData } = props;
+  const [categoryType, setCategoryType] = useState<"expense" | "income">(
+    "expense",
   );
 
-  const transactionsByMonthData = useMemo(() => {
-    const summaryEachMonth = groupByMonth(transactionsThisYear);
-    return summaryEachMonth ?? {};
-  }, [transactionsThisYear]);
-
-  const transactionByCatagoryData = useMemo(() => {
-    const summaryEachCatagory = groupByCategory(
-      transactionsThisYear,
-      "expense",
-    );
-    return summaryEachCatagory ?? {};
-  }, [transactionsThisYear]);
-
-  const barChartData: barChartType[] = Object.entries(transactionsByMonthData)
-    .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-    .map(([key, value]) => {
-      const monthName = MonthNames[key.slice(5, 7) as keyof typeof MonthNames];
+  const barChartData: barChartType[] | undefined =
+    summaryDatas &&
+    summaryDatas.map((item) => {
+      const monthName =
+        MonthNames[item.period.slice(5, 7) as keyof typeof MonthNames];
       return {
         month: monthName,
-        income: value.income,
-        expense: value.expense,
+        income: item.income,
+        expense: item.expense,
       };
     });
 
-  const pieChartData: pieChartType[] = Object.entries(
-    transactionByCatagoryData,
-  ).map(([key, value]) => ({
-    catagory: key,
-    value,
-    fill: `var(--color-${key})`,
-  }));
+  const expensePieChartData: pieChartType[] | undefined =
+    categoryData?.expense.map((item) => ({
+      category: item.category,
+      value: item.total,
+      fill: `var(--color-${item.category})`,
+    }));
+  const incomePieChartData: pieChartType[] | undefined =
+    categoryData?.income.map((item) => ({
+      category: item.category,
+      value: item.total,
+      fill: `var(--color-${item.category})`,
+    }));
 
-  const switchContentGraphProps: TotalContentGraphProps =
-    type === "balance"
-      ? { type: "balance", chartData: barChartData }
-      : { type: "catagory", chartData: pieChartData };
+  const pieChartData =
+    categoryType === "expense" ? expensePieChartData : incomePieChartData;
 
   return (
-    <Card className="justify-between col-span-3 row-span-2 max-xl:col-span-6 ">
-      {switchContentGraph(switchContentGraphProps)}
+    <Card className="justify-between col-span-3 max-xl:col-span-6">
+      {type === "category" && (
+        <CardHeader>
+          <CardTitle className="text-2xl">Category Graph</CardTitle>
+          <CardDescription>
+            <span className="block">
+              Category:{" "}
+              <span className="font-bold text-primary-foreground">
+                {categoryType.toUpperCase()}
+              </span>
+            </span>
+            explain your expense each category this month
+          </CardDescription>
+          <CardAction>
+            <Select
+              value={categoryType}
+              onValueChange={(v) =>
+                v && setCategoryType(v as "expense" | "income")
+              }
+            >
+              <SelectTrigger>
+                <SelectValue>Select Category</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="expense">Expense</SelectItem>
+                  <SelectItem value="income">Income</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </CardAction>
+        </CardHeader>
+      )}
+      <GraphContent
+        barData={barChartData ?? []}
+        pieData={pieChartData ?? []}
+        type={type}
+        categoryType={categoryType}
+      />
     </Card>
   );
 };

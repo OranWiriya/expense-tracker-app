@@ -33,8 +33,8 @@ export default async function AuthLayout({
       <div className="min-h-full flex flex-col">
         <SidebarProvider defaultOpen={defaultOpen}>
           <AppSidebar header={null} content={[]} footer={null} />
-          <SidebarInset className="m-0! mr-2! ">
-            <main className="min-h-[calc(100vh-65px)] max-xl:h-full">
+          <SidebarInset className="m-0! mr-2! shadow-none!">
+            <main className="min-h-[calc(100vh-65px)] max-xl:max-h-full">
               <AppTopbar userData={sessionData?.user} />
               {children}
             </main>
