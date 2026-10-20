@@ -9,6 +9,19 @@ import {
 import { tagQueries } from "./useTag";
 import { walletQueries } from "./useWallet";
 import { toast } from "@/components/ui/toast";
+import { Category } from "@/generated/prisma/enums";
+
+export type SummaryItem = {
+  period: string;
+  income: number;
+  expense: number;
+  net: number;
+};
+export type CategorySummary = {
+  month: string;
+  expense: { category: Category; total: number }[];
+  income: { category: Category; total: number }[];
+};
 
 const BASE = "/api/v1/transactions";
 
@@ -27,6 +40,27 @@ export const transactionQueries = {
 };
 
 export const useTransactionList = () => useQuery(transactionQueries.list());
+
+export const useTransactionSummary = (
+  granularity: "month" | "year",
+  year?: number,
+) =>
+  useQuery({
+    queryKey: [...transactionQueries.all(), "summary", granularity, year],
+    queryFn: () =>
+      http.get<SummaryItem[]>(`${BASE}/summary`, {
+        params: { granularity, year },
+      }),
+  });
+
+export const useCategorySummary = (month?: string) =>
+  useQuery({
+    queryKey: [...transactionQueries.all(), "summary", "by-category", month],
+    queryFn: () =>
+      http.get<CategorySummary>(`${BASE}/summary/by-category`, {
+        params: { month },
+      }),
+  });
 
 export const useTransactionDetail = (transactionId: string) => {
   return useQuery(transactionQueries.detail(transactionId));

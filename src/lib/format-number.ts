@@ -22,9 +22,9 @@ const formatNumberByCurrency = (amount: number) =>
 const stripCommas = (value: string) => value.replace(/,/g, "");
 
 const responsiveTextSize = (displayData: string) =>
-  displayData.length > 9
-    ? "text-lg sm:text-xl md:text-2xl"
-    : "text-2xl sm:text-4xl lg:text-6xl ";
+  displayData.length > 12
+    ? "text-lg sm:text-2xl md:text-4xl"
+    : "text-xl sm:text-2xl lg:text-4xl ";
 
 export {
   formatNumberWithCommas,
