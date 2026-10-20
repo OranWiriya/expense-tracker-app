@@ -49,6 +49,7 @@ const ActionCell = (props: ActionCellProps) => {
                   View transaction details
                 </Link>
               }
+              className="cursor-pointer"
             />
             <DropdownMenuSeparator />
             <DropdownMenuItem
