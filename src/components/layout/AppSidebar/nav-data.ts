@@ -52,11 +52,6 @@ export const navMain = [
         icon: Calendar,
       },
       {
-        title: "Reports",
-        url: "/reports",
-        icon: Newspaper,
-      },
-      {
         title: "Wallet",
         url: "/wallet",
         icon: Wallet,

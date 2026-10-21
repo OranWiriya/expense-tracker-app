@@ -3,6 +3,7 @@ import { nextCookies } from "better-auth/next-js";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "./prisma"; // your prisma client instance
 import { resend } from "./resend";
+import { toast } from "@/components/ui/toast";
 
 export const auth = betterAuth({
   // if you want to change the base path pls do on your .env and change matcher in proxy.ts
@@ -31,12 +32,20 @@ export const auth = betterAuth({
     minPasswordLength: 4,
     sendResetPassword: async ({ user, token }) => {
       const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
-      await resend.emails.send({
+      const { error } = await resend.emails.send({
         from: "onboarding@resend.dev", // change this to your own verify email
         to: user.email,
         subject: "Reset Password for Expense Tracker",
         html: `<p>Click the link below to reset your password:</p><p><a href="${resetUrl}">${resetUrl}</a></p>`,
       });
+      if (error) {
+        console.error("Failed to send reset email", error);
+        toast.add({
+          title: "Error",
+          description: error.message,
+          type: "error",
+        });
+      }
     },
   },
 
