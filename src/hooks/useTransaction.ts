@@ -23,6 +23,13 @@ export type CategorySummary = {
   income: { category: Category; total: number }[];
 };
 
+export type DailySummary = {
+  day: string;
+  income: number;
+  expense: number;
+  net: number;
+};
+
 const BASE = "/api/v1/transactions";
 
 export const transactionQueries = {
@@ -60,6 +67,13 @@ export const useCategorySummary = (month?: string) =>
       http.get<CategorySummary>(`${BASE}/summary/by-category`, {
         params: { month },
       }),
+  });
+
+export const useDailySummary = (month?: string) =>
+  useQuery({
+    queryKey: [...transactionQueries.all(), "summary", "daily", month],
+    queryFn: () =>
+      http.get<DailySummary[]>(`${BASE}/summary/daily`, { params: { month } }),
   });
 
 export const useTransactionDetail = (transactionId: string) => {
